@@ -21,23 +21,8 @@ classdef studentControllerInterfaceLQG < matlab.System
         Sigma_ww = 0.01*eye(2);
     end
     methods(Access = protected)
-        function setupImpl(obj)
-            obj.t_prev = -0.01;
-            obj.x_hat = [-0.19;0;0;0];
-            obj.P_m = 0.1*eye(4);
-            obj.L = eye(4);
-            obj.H = [1,0,0,0;
-                     0,0,1,0];
-            obj.M = eye(2);
-            obj.r_g = 0.0254;
-            obj.len = 0.4255;
-            obj.g = 9.81;
-            obj.K_motor = 1.5;
-            obj.tau = 0.025;
-            obj.u_prev = 0;
-            obj.Sigma_vv = 0.01*eye(4);
-            obj.Sigma_ww = 0.01*eye(2);
-        end
+        % function setupImpl(obj)
+        % end
 
         function V_servo = stepImpl(obj, t, p_ball, theta)
         % This is the main function called every iteration. You have to implement
@@ -108,26 +93,9 @@ classdef studentControllerInterfaceLQG < matlab.System
 
             %% LQR
 
-            lookahead = 0.14; % s
-            checktime = 0.95; % s
-
-            [p_ref_now, v_ref_now, a_ref_now] = get_ref_traj(t + lookahead);
-            [p_ref_check1, v_ref_check1, a_ref_check1] = get_ref_traj(t + checktime);
-            [~, v_ref_check2, ~] = get_ref_traj(t + checktime + 0.1);
+            [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
             
-            if v_ref_check1 == 0 && v_ref_check2 == 0
-                k_p = 8.75;
-                p_ball_ref = p_ref_check1;
-                v_ball_ref = k_p*dt*(p_ball_ref - x_hat(1));
-                % a_ball_ref = asin(a_ref_check1*len/(r_g*g));
-                a_ball_ref = 0;
-            else
-                corr_factor = 0.9;
-                p_ball_ref = p_ref_now;
-                v_ball_ref = corr_factor*v_ref_now;
-                a_ball_ref = asin(a_ref_check1*len/(r_g*g));
-            end
-
+            theta_ref = asin(a_ball_ref*len/(r_g*g));
 
             A_lqr = [1, dt, 0, 0;
                      5/7*(r_g/len)^2*x_hat(4)^2*(cos(x_hat(3)))^2*dt, 1, (5*g/7*r_g/len*cos(x_hat(3)) + 10/7*(len/2-x_hat(1))*(r_g/len)^2*x_hat(4)^2*cos(x_hat(3))*sin(x_hat(3)))*dt, -10/7*(len/2-x_hat(1))*(r_g/len)^2*x_hat(4)*(cos(x_hat(3)))^2*dt;
@@ -158,7 +126,7 @@ classdef studentControllerInterfaceLQG < matlab.System
 
             % F_debug = dlqr(A_lqr,[0;0;0;K_motor/tau*dt],diag([1000, 1000, 1, 1]),1);
             
-            x_tilde = x_hat - [p_ball_ref; v_ball_ref; a_ball_ref; 0];
+            x_tilde = x_hat - [p_ball_ref; v_ball_ref; theta_ref; 0];
 
 
             % Apply voltage for previous timestep if current one is zero
