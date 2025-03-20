@@ -102,7 +102,7 @@ classdef studentControllerInterfaceLQG < matlab.System
                      0, 0, 1, dt;
                      0, 0, 0, 1-dt/tau];
             B_lqr = [0;0;0;K_motor/tau*dt];
-            Q = diag([1000, 1000, 1, 1]); % for MATLAB sim
+            Q = diag([min(1000,1 + t*999), min(1000,1 + t*999), 1, 1]); % for MATLAB sim
             % Q = diag([200,200,1,1]); % for Simulink
             R = 1;
             thresh = 0.1;
