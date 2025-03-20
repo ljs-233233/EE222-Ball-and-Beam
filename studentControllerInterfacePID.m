@@ -66,7 +66,7 @@ classdef studentControllerInterfacePID < matlab.System
         theta_d = min(max(theta_d, -theta_saturation), theta_saturation);
         
         k_p_theta = 5;
-        k_d_theta = 0.1;
+        k_d_theta = -0.1;
         theta_error = theta_d - theta;
         omega = (theta - obj.theta_ball_prev) / dt;
 
