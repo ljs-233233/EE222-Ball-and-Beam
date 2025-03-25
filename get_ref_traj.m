@@ -8,8 +8,8 @@ function [p_ref, v_ref, a_ref] = get_ref_traj(t)
 %       v_ref: reference velocity of the ball
 %       a_ref: reference acceleration of the ball
     coder.allowpcode('plain');
-    % amplitude = 0.04; % m
-    % period = 10; % sec
+    % amplitude = 0.1; % m
+    % period = 6; % sec
     % 
     % omega = 2 * pi / period;    
     
@@ -25,10 +25,10 @@ function [p_ref, v_ref, a_ref] = get_ref_traj(t)
 
     %% Tester
     n_changes = 10;
-    amp_ratio = ceil(t/90 * n_changes)/n_changes;
+    amp_ratio = 1 - floor(t/90 * n_changes)/n_changes;
     period_ratio = floor(t/90 * n_changes)/n_changes;
 
-    period = 10 - 4*period_ratio;
+    period = 6 + 4*period_ratio;
 
     omega = 2 * pi / period;
 
