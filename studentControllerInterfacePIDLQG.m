@@ -21,19 +21,7 @@ classdef studentControllerInterfacePIDLQG < matlab.System
         M = eye(2);
         u_prev = 0;
         Sigma_vv = 0.01*eye(4);
-        Sigma_ww = 0.01*eye(2);
-
-        % PID Properties
-        theta_d = 0;
-        pos_error_prev = 0;
-        integral_p = 0;
-        vel_error_prev = 0;
-        integral_v = 0;
-        theta_ball_prev = 0;
-        integral_theta = 0;
-
-        % LQR Properties    
-        
+        Sigma_ww = 0.01*eye(2);   
         
     end
     methods(Access = protected)
@@ -90,10 +78,6 @@ classdef studentControllerInterfacePIDLQG < matlab.System
             M = obj.M;
             Sigma_vv = obj.Sigma_vv;
             Sigma_ww = obj.Sigma_ww;
-            pos_error_prev = obj.pos_error_prev;
-            vel_error_prev = obj.vel_error_prev;
-            integral_p = obj.integral_p;
-            integral_v = obj.integral_v;
 
             %% EKF
             A = [1, dt, 0, 0;
@@ -112,41 +96,42 @@ classdef studentControllerInterfacePIDLQG < matlab.System
             P_m = (eye(4) - K*H)*P_p*(eye(4) - K*H)' + K*M*Sigma_ww*M'*K';
 
 
+            %% Params
+
+            [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);  
+
+            % --- MATLAB tuning ---
+            k_p_ball = 1.2;
+            k_p_vel = 3.0;
+            k_p_theta = 1.0;
+            Q = diag([1000, 100]);
+            R = 16;
+
+            % --- Simulink tuning ---
+            % k_p_ball = 1.2;
+            % k_p_vel = 3.0;
+            % k_p_theta = 1.0;
+            % Q = diag([1000,100]);
+            % R = 1;
+
             %% PID
-
-            [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-
+            
             % Position control to get a desired velocity
             pos_error = x_hat(1) - p_ball_ref;
-            integral_p = integral_p + pos_error * dt;
-            max_int_p = 0.03;
-            integral_p = min(max(-max_int_p, integral_p),max_int_p);
-            k_p_ball = 1.2;  % --\
-            k_d_ball = 0.00; % --- Tune these values
-            k_i_ball = 0.02; % --/
-            v_des = v_ball_ref - k_p_ball*pos_error - k_d_ball*(pos_error - pos_error_prev)/dt - k_i_ball*integral_p;
+            v_des = v_ball_ref - k_p_ball*pos_error;
 
             % Velocity control to get a desired acceleration (angle)
             vel_error = x_hat(2) - v_des;
-            integral_v = integral_v + vel_error * dt;
-            max_int_v = 1;
-            integral_v = min(max(-max_int_v, integral_v),max_int_v);
-            k_p_vel = 3;   % --\
-            k_d_vel = 0;   % --- Tune these values
-            k_i_vel = 0.0; % --/
-            a_des = a_ball_ref - k_p_vel*vel_error - k_d_vel*(vel_error - vel_error_prev)/dt + k_i_vel*integral_v;
+            a_des = a_ball_ref - k_p_vel*vel_error;
 
             % Angle Computation
             a_param = 5 * g * r_g / (7 * len);
             theta_d = a_des / a_param;
-            % theta_d = asin(a_des*len/(r_g*g));
             theta_saturation = 56 * pi / 180;
             theta_d = min(max(theta_d, -theta_saturation), theta_saturation);
 
             % Proportional control to get a desired omega
-            k_p_theta = 1; % Tune this value
             omega_d = -k_p_theta * (x_hat(3) - theta_d);
-
 
 
             %% LQR
@@ -154,8 +139,6 @@ classdef studentControllerInterfacePIDLQG < matlab.System
             A_lqr = [1, dt;
                      0, 1-dt/tau];
             B_lqr = [0;K_motor/tau*dt];
-            Q = diag([1000, 100]); % for MATLAB sim   --\
-            R = 1;                                  % --/ Tune these values
             thresh = 0.1;
 
             % DARE solver since dlqr not supported in Simulink
@@ -189,10 +172,11 @@ classdef studentControllerInterfacePIDLQG < matlab.System
             end
 
             %% Safety check, ensure motor does not exceed 56 degrees
-            % future_theta = x_hat(3) + (x_hat(4) + (-x_hat(4) + K_motor)*dt/tau)*dt;
-            % if future_theta > 56*pi/180 || future_theta < -56*pi/180
-            %     V_servo = 0;
-            % end
+            if x_hat(3) > 56*pi/180 && V_servo > 0
+                V_servo = 0;
+            elseif x_hat(3) < -56*pi/180 && V_servo < 0
+                V_servo = 0;
+            end
 
             %% Update class properties if necessary.
             obj.t_prev = t;
@@ -200,11 +184,6 @@ classdef studentControllerInterfacePIDLQG < matlab.System
             obj.P_m = P_m;
             obj.u_prev = V_servo;
             obj.t_prev = t;
-            obj.theta_d = theta_d;
-            obj.pos_error_prev = pos_error;
-            obj.vel_error_prev = vel_error;
-            obj.integral_p = integral_p;
-            obj.integral_v = integral_v;
         end
     end
     

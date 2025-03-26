@@ -3,7 +3,7 @@ clear all
 
 %% General Settings.
 % Initial state.
-x0 = [0.00; 0.00; 0; 0];
+x0 = [-0.19; 0.00; 0; 0];
 t0 = 0;
 % Simulation time.
 T = 90;
@@ -18,7 +18,7 @@ plot_animation = false;
 % save animation to video if true.
 save_video = false;
 
-controller_handle = studentControllerInterfacePIDLQG();
+controller_handle = studentControllerInterfaceAIO();
 u_saturation = 10;
 
 % Initialize traces.
@@ -37,7 +37,6 @@ end_simulation = false;
 %% Run simulation.
 % _t indicates variables for the current loop.
 tstart = tic;
-controller_handle.initializeController(t,x(1),x(3));
 while ~end_simulation
     %% Determine control input.
     tstart = tic; % DEBUG    
