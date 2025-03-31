@@ -90,7 +90,6 @@ classdef studentControllerInterfaceLQG < matlab.System
             x_hat = x_p + K*([p_ball;theta] - [x_p(1);x_p(3)]);
             P_m = (eye(4) - K*H)*P_p*(eye(4) - K*H)' + K*M*Sigma_ww*M'*K';
 
-
             %% LQR
 
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
