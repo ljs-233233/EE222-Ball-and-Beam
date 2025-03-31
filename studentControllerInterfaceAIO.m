@@ -181,8 +181,9 @@ classdef studentControllerInterfaceAIO < matlab.System
     methods(Access = public)
         % Used this for matlab simulation script. fill free to modify it as
         % however you want.
-        function V_servo = stepController(obj, t, p_ball, theta)        
+        function [V_servo, theta_d] = stepController(obj, t, p_ball, theta)        
             V_servo = stepImpl(obj, t, p_ball, theta);
+            theta_d = 0;
         end
     end
     

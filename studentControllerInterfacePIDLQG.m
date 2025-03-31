@@ -21,7 +21,10 @@ classdef studentControllerInterfacePIDLQG < matlab.System
         M = eye(2);
         u_prev = 0;
         Sigma_vv = 0.01*eye(4);
-        Sigma_ww = 0.01*eye(2);   
+        Sigma_ww = 0.01*eye(2);  
+
+        % PID Properties
+        theta_d = 0;
         
     end
     methods(Access = protected)
@@ -184,6 +187,7 @@ classdef studentControllerInterfacePIDLQG < matlab.System
             obj.P_m = P_m;
             obj.u_prev = V_servo;
             obj.t_prev = t;
+            obj.theta_d = theta_d;
         end
     end
     
