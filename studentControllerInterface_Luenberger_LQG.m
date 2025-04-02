@@ -1,4 +1,4 @@
-classdef studentControllerInterfaceLQG < matlab.System
+classdef studentControllerInterface_Luenberger_LQG < matlab.System
     properties (Access = private)
         %% You can add values that you want to store and updae while running your controller.
         % For more information of the supported data type, see
@@ -82,11 +82,12 @@ classdef studentControllerInterfaceLQG < matlab.System
             B = [0; 0; 0; K_motor/tau];
             C = [1 0 0 0; 0 0 1 0]; 
 
-            desired_poles = [-5 -6 -7 -8]; % TODO: tune
+            desired_poles = [-10 -12 -15 -18]; % TODO: tune
             L = place(A', C', desired_poles)';  
             y = [p_ball; theta]; 
-            x_hat = A * x + B * u_prev;
-            x_hat = x_hat + L * (y - C * x_hat); % [p_ball_hat, theta_hat]
+            %x_hat = A * x + B * u_prev;
+            %x_hat = x_hat + L * (y - C * x_hat); % [p_ball_hat, theta_hat]
+            x_hat = (A - L*C) * x + B * u_prev + L * y;
 
             %% LQR
 
