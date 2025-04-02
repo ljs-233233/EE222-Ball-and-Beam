@@ -1,4 +1,4 @@
-classdef studentControllerInterfacePIDLQG < matlab.System
+classdef studentControllerInterface_EKF_PIDLQG < matlab.System
     properties (Access = private)
         %% You can add values that you want to store and updae while running your controller.
         % For more information of the supported data type, see
