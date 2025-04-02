@@ -28,6 +28,9 @@ classdef studentControllerInterfaceAIO < matlab.System
         Sigma_vv = 0.01*eye(4);
         Sigma_ww = 0.01*eye(2);
 
+        % For plotting purposes
+        theta_d = 0;
+
     end
     methods(Access = protected)
         % function setupImpl(obj)
@@ -175,6 +178,7 @@ classdef studentControllerInterfaceAIO < matlab.System
             obj.a_ref_prev = a_ball_ref;
             obj.j_ref_prev = j_ball_ref;
             obj.s_ref_prev = s_ball_ref;
+            obj.theta_d = asin(a_ball_ref/(5 * g * r_g / (7 * len)));
         end
     end
     
@@ -183,7 +187,7 @@ classdef studentControllerInterfaceAIO < matlab.System
         % however you want.
         function [V_servo, theta_d] = stepController(obj, t, p_ball, theta)        
             V_servo = stepImpl(obj, t, p_ball, theta);
-            theta_d = 0;
+            theta_d = obj.theta_d;
         end
     end
     

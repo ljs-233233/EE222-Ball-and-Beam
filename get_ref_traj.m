@@ -32,7 +32,7 @@ function [p_ref, v_ref, a_ref] = get_ref_traj(t)
 
     omega = 2 * pi / period;
 
-    if mod(amp_ratio * n_changes,2) == 1
+    if mod(round(amp_ratio,1) * n_changes,2) == 1
         p_ref = amp_ratio * 0.15 * sin(omega * t);
         v_ref = amp_ratio * 0.15 * omega * cos(omega * t);
         a_ref = - amp_ratio * 0.15 * omega^2 * sin(omega * t);
