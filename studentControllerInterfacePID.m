@@ -9,6 +9,20 @@ classdef studentControllerInterfacePID < matlab.System
         integral_p = 0;
         theta_ball_prev = 0;
         integral_theta = 0;
+
+        k_p_ball = 5;
+        k_d_ball = 3;
+        k_i_ball = 0;
+
+        g = 9.81;
+        r_arm = 0.0254;
+        L = 0.4255;
+        a_param = 5 * 9.81 * 0.0254 / (7 * 0.4255);
+        k_p_theta = 5;
+        k_d_theta = -0.25;
+        k_i_theta = 0;
+
+        v_ball_rev_prev = 0;
     end
     methods(Access = protected)
         function setupImpl(obj, t, p_ball, theta)
@@ -39,15 +53,21 @@ classdef studentControllerInterfacePID < matlab.System
             % position.
             
             % Update class properties if necessary.
-        
+
         [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
+
         dt = t - obj.t_prev;
         v_ball_est = (p_ball - obj.p_ball_prev) / dt;
         
-        k_p_ball = 5;
-        k_d_ball = 3;
-        k_i_ball = 0;
-        
+        if v_ball_ref == 0 && obj.v_ball_rev_prev == 0
+            k_p_ball = obj.k_p_ball - 3;
+            k_d_ball = obj.k_d_ball + 1;
+        else
+            k_p_ball = obj.k_p_ball;
+            k_d_ball = obj.k_d_ball;
+        end
+        k_i_ball = obj.k_i_ball;
+
         pos_error = p_ball_ref - p_ball;
         vel_error = v_ball_ref - v_ball_est;
 
@@ -55,27 +75,33 @@ classdef studentControllerInterfacePID < matlab.System
         
         a_des = a_ball_ref + k_p_ball * pos_error + k_d_ball * vel_error + k_i_ball * obj.integral_p;
         
-        g = 9.81;
-        r_arm = 0.0254;
-        L = 0.4255;
-        a_param = 5 * g * r_arm / (7 * L);
+        if v_ball_ref == 0 && obj.v_ball_rev_prev == 0
+            k_p_theta = obj.k_p_theta - 3;
+            k_d_theta = obj.k_d_theta + 0.25;
+            k_i_theta = obj.k_i_theta - 0.1;
+        else
+            k_p_theta = obj.k_p_theta;
+            k_d_theta = obj.k_d_theta;
+            k_i_theta = obj.k_i_theta;
+        end
 
-        theta_d = a_des / a_param;
+        theta_d = a_des / obj.a_param;
         
         theta_saturation = 56 * pi / 180;
         theta_d = min(max(theta_d, -theta_saturation), theta_saturation);
         
-        k_p_theta = 5;
-        k_d_theta = 0.1;
+
         theta_error = theta_d - theta;
+        obj.integral_theta = obj.integral_theta + theta_error;
         omega = (theta - obj.theta_ball_prev) / dt;
 
-        V_servo = k_p_theta * theta_error + k_d_theta * omega;
+        V_servo = k_p_theta * theta_error + k_d_theta * omega + k_i_theta;
         
         obj.t_prev = t;
         obj.p_ball_prev = p_ball;
         obj.theta_ball_prev = theta;
         obj.theta_d = theta_d;
+        obj.v_ball_rev_prev = v_ball_ref;
         end
     end
     
