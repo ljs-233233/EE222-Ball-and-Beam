@@ -18,7 +18,7 @@ plot_animation = true;
 % save animation to video if true.
 save_video = false;
 
-controller_handle = studentControllerInterfacePID();
+controller_handle = studentControllerInterface_Luenberger_PIDLQG();
 u_saturation = 10;
 
 % Initialize traces.
