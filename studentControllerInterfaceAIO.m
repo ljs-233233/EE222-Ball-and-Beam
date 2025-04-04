@@ -173,16 +173,16 @@ classdef studentControllerInterfaceAIO < matlab.System
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
 
             % Safety
-            h = (len/2)^2 - p_ball^2;
+            h = (len/2 - 0.025)^2 - p_ball^2;
 
             p_dot_est = x_hat(2);
-            h_dot = -2 * p_ball * p_dot_est
+            h_dot = -2 * x_hat(1) * p_dot_est;
 
-            f_ball = (5*g/7)* sin(theta);
-            g_ball = (5*g/7)*(r_g/len)*cos(theta)*(K_motor/tau);
+            f_ball = (5*g/7)* sin(x_hat(3));
+            g_ball = (5*g/7)*(r_g/len)*cos(x_hat(3))*(K_motor/tau);
 
-            Lf2_h = -2*(p_dot_est^2 + p_ball * f_ball);
-            Lg2_h = -2 * p_ball * g_ball;
+            Lf2_h = -2*(p_dot_est^2 + x_hat(1) * f_ball);
+            Lg2_h = -2 * x_hat(1) * g_ball;
 
             lambda_val = obj.lambda_cbf;
             % CBF condition: Lf2_h + Lg2_h*u + 2*lambda*h_dot + lambda^2*h >= 0
