@@ -8,24 +8,24 @@ function [p_ref, v_ref, a_ref] = get_ref_traj(t)
 %       v_ref: reference velocity of the ball
 %       a_ref: reference acceleration of the ball
     coder.allowpcode('plain');
-    % amplitude = 0.04; % m
-    % period = 10; % sec
-    % 
-    % omega = 2 * pi / period;    
+    amplitude = 0.075; % m
+    period = 8; % sec
+
+    omega = 2 * pi / period;    
     
     %% Sine wave.
-    % p_ref = amplitude * sin(omega * t);
-    % v_ref = amplitude * omega * cos(omega * t);
-    % a_ref = - amplitude * omega^2 * sin(omega * t);
+    p_ref = amplitude * sin(omega * t);
+    v_ref = amplitude * omega * cos(omega * t);
+    a_ref = - amplitude * omega^2 * sin(omega * t);
     %% Square wave.
     % p_ref = amplitude * sign(sin(omega * t));
     % v_ref = 0;
     % a_ref = 0;
 
     %% Test safety
-    p_ref = 0.19;
-    v_ref = 0;
-    a_ref = 0;
+    % p_ref = 0.19;
+    % v_ref = 0;
+    % a_ref = 0;
 
     %% Tester
     % n_changes = 10;

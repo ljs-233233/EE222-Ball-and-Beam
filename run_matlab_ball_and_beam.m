@@ -14,11 +14,11 @@ ode_func = @ode45;
 % print log for each timestep if true.
 verbose = false;
 % plot animation if true.
-plot_animation = true;
+plot_animation = false;
 % save animation to video if true.
 save_video = false;
 
-controller_handle = studentControllerInterfaceAIO();
+controller_handle = studentControllerInterface();
 u_saturation = 10;
 
 % Initialize traces.
