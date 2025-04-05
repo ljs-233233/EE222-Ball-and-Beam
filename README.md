@@ -4,7 +4,7 @@ Jinsheng Li, Miranda Xie, Leo Huang, and Dylan Lee
 
 ## Observer and Controllers Used
 
-Our group used an EKF observer. The first controller developed was a PID-Wrapped LQR controller, and the second was an Approximate Feedback Linearization controller. To switch between the two, comment/uncomment lines 38-39 in 'studentControllerInterface.m'.
+Our group used an EKF observer. The first controller developed was a PID-Wrapped LQR controller, and the second was an Approximate Feedback Linearization controller. To switch between the two, comment/uncomment lines 38-39 in `studentControllerInterface.m`.
 
 ## Simulation Results Summary
 
