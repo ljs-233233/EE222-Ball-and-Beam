@@ -8,7 +8,12 @@ Our group used an EKF observer. The first controller developed was a PID-Wrapped
 
 ## Simulation Results Summary
 
-We summarize results of the controllers using (1) a tester trajectory which swept various amplitudes and periods of both square and sine waves, initializing ball posiiton at -19cm (2) pure sine waves with an amplitude of 7.5cm and period of 8s, initializing ball position at 0cm and (3) pure square waves with an amplitude of 5cm and period of 8s, initializing ball position at 0cm. The results are tabulated below.
+We summarize results of the controllers using:
+* a tester trajectory which swept various amplitudes and periods of both square and sine waves, initializing ball posiiton at -19cm
+* pure sine waves with an amplitude of 7.5cm and period of 8s, initializing ball position at 0cm
+* pure square waves with an amplitude of 5cm and period of 8s, initializing ball position at 0cm.
+
+The results are tabulated below.
 
 | Controller | PID-LQR | PID-LQR | PID-LQR | Feedback Lin. | Feedback Lin. | Feedback Lin. |
 | ---------- | ------- | ------- | ------- | ------------- | ------------- | ------------- |
