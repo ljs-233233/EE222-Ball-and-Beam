@@ -1,39 +1,30 @@
 # UC Berkeley EE222/ME237 Nonlinear Systems Ball and Beam Project
 
-EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the course project.
+Jinsheng Li, Miranda Xie, Leo Huang, and Dylan Lee
 
-## Project Overview
+## Observer and Controllers Used
 
-This project involves designing and testing nonlinear controllers for a ball and beam system. The objective is to develop controllers that stabilize the ball at a desired position on the beam. You will first implement your controllers in MATLAB simulations and later test them on physical hardware.
+Our group used an EKF observer. The first controller developed was a PID-Wrapped LQR controller, and the second was an Approximate Feedback Linearization controller. To switch between the two, comment/uncomment lines 38-39 in `studentControllerInterface.m`.
 
-## Understanding the Problem
+## Simulation Results Summary
 
-To gain a full understanding of the problem and project expectations, please refer to the following documents in this repository:
+We summarize results of the controllers using:
+* a tester trajectory which swept various amplitudes and periods of both square and sine waves, initializing ball posiiton at -19cm
+* pure sine waves with an amplitude of 7.5cm and period of 8s, initializing ball position at 0cm
+* pure square waves with an amplitude of 5cm and period of 8s, initializing ball position at 0cm.
 
-[`EE_222_Course_Project.pdf`](EE_222_Course_Project.pdf) – Overview of the project and system model. (Disregard the due dates and GitHub link in this older document)
+The results are tabulated below.
 
-[`EE222 Lab Feedback and FAQ.pdf`](EE222_Lab_Feedback_and_FAQ.pdf) – Common issues and recommendations.
+| Controller | PID-LQR | PID-LQR | PID-LQR | Feedback Lin. | Feedback Lin. | Feedback Lin. |
+| ---------- | ------- | ------- | ------- | ------------- | ------------- | ------------- |
+| Trajectory | Tester  | Sine    | Square  | Tester        | Sine          | Square        |
+||||||||
+| Tracking Cost | 4.30 | 0.01    | 3.10    | 5.01          | 0.01          | 4.10          |
+| Energy Cost   | 1.21 | 0.03    | 1.34    | 1.34          | 0.02          | 0.57          |
+| Total Cost    | 5.51 | 0.04    | 4.44    | 6.35          | 0.03          | 4.67          |
 
-[`EE222_Lab_Part_1_Simulation.pdf`](EE222_Lab_Part_1_Simulation.pdf) – Instructions for running simulation.
+In general, the PID-Wrapped LQR controller seems to perform better for square waves, but the feedback linearization controller tends to perform better with sine waves. The overall performance of the PID-LQR controller seems to be slightly better but this may be due to the tester trajectory including more aggressive square waves than sine waves.
 
-[`EE222_Lab_Part_2_Hardware_Testing.pdf`](EE222_Lab_Part_2_Hardware_Testing.pdf) – Instructions for hardware testing. (To be updated)
+## Animations
 
-## Code Instructions
-
-### Prerequisites
-
-Install MATLAB and Simulink using the Berkeley academic license.
-
-### Getting Started
-
-Clone or fork this repository.
-
-Run `setup.m` or manually add the repository and its subfolders to the MATLAB path.
-
-Modify only studentControllerInterface.m to implement your controller.
-
-To test your controller:
-
-Run `run_matlab_ball_and_beam.m` for a MATLAB-based simulation.
-
-Run `run_simulink_ball_and_beam.m` for a Simulink-based simulation.
+To see animations, see the ['/media'](/media) folder.
