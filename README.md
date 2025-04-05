@@ -1,6 +1,8 @@
 # UC Berkeley EE222/ME237 Nonlinear Systems Ball and Beam Project
 
-Jinsheng Li, Miranda Xie, Leo Huang, and Dylan Lee
+*Jinsheng Li, Miranda Xie, Leo Huang, and Dylan Lee*
+
+The full project report is here: [`EE222_project_report_part1.pdf`](EE222_project_report_part1.pdf). Presented here is a brief summary of results.
 
 ## Observer and Controllers Used
 
@@ -27,4 +29,4 @@ In general, the PID-Wrapped LQR controller seems to perform better for square wa
 
 ## Animations
 
-To see animations, see the ['/media'](/media) folder.
+Animations are in the ['/media'](/media) folder.
