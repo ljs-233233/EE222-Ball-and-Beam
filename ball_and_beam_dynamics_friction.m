@@ -17,7 +17,7 @@ dx = zeros(4, 1);
 
 % dynamics
 dx(1) = v_ball;
-dx(2) = a * sin(theta) - b * dtheta^2 * cos(theta)^2 + c * p_ball * dtheta^2 * cos(theta)^2 - sign(v_ball) * g * cos(theta);
+dx(2) = a * sin(theta) - b * dtheta^2 * cos(theta)^2 + c * p_ball * dtheta^2 * cos(theta)^2 - sign(v_ball) * mu * a * cos(theta);
 dx(3) = dtheta;
 K = 1.5;
 tau = 0.025;
