@@ -196,7 +196,6 @@ classdef studentControllerInterface < matlab.System
 
 
             %% LQR
-
             A_lqr = [1, dt;
                      0, 1-dt/tau];
             B_lqr = [0;K_motor/tau*dt];
@@ -236,8 +235,8 @@ classdef studentControllerInterface < matlab.System
             s_ball_ref = 0;
         end
 
-        if abs(x_hat(1) - p_ball_ref) > 0.01
-            V_servo = V_servo + 3*sign(x_hat(1) - p_ball_ref);
+        if abs(x_hat(1) - p_ball_ref) > 0.1 && abs(x_hat(2)) < 1 && t > 1.5
+            V_servo = V_servo - 3*sign(x_hat(1) - p_ball_ref);
         end
 
         %% Safety (for both controllers)
