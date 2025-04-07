@@ -235,9 +235,10 @@ classdef studentControllerInterface < matlab.System
             s_ball_ref = 0;
         end
 
-        if abs(x_hat(1) - p_ball_ref) > 0.1 && abs(x_hat(2)) < 1 && t > 1.5
-            V_servo = V_servo - 3*sign(x_hat(1) - p_ball_ref);
-        end
+        %% Friction
+        % if abs(x_hat(1) - p_ball_ref) > 0.1 && abs(x_hat(2)) < 1 && t > 1.5
+        %     V_servo = V_servo - 3*sign(x_hat(1) - p_ball_ref);
+        % end
 
         %% Safety (for both controllers)
         % Safety
