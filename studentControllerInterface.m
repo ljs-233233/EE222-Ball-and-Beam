@@ -19,7 +19,7 @@ classdef studentControllerInterface < matlab.System
         s_ref_prev = 0;
 
         % EKF Properties
-        x_hat = [-0.19;0;0;0];
+        x_hat = [-0.19;0;-55*pi/180;0];
         P_m = 0.1*eye(4);
         L = eye(4);
         H = [1,0,0,0;
@@ -35,15 +35,15 @@ classdef studentControllerInterface < matlab.System
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-        % ctr_type = 0; % FEEDBACK LINEARIZATION
-        ctr_type = 1; % PID-LQR
+        ctr_type = 0; % FEEDBACK LINEARIZATION
+%         ctr_type = 1; % PID-LQR
     end
     methods(Access = protected)
         % function setupImpl(obj)
         %    disp("You can use this function for initializaition.");
         % end
 
-        function V_servo = stepImpl(obj, t, p_ball, theta)
+        function [V_servo,x_hat] = stepImpl(obj, t, p_ball, theta)
         % This is the main function called every iteration. You have to implement
         % the controller in this function, bu you are not allowed to
         % change the signature of this function. 
@@ -155,6 +155,7 @@ classdef studentControllerInterface < matlab.System
 
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
+            theta_d = 0;
 
         else % PID-LQR CONTROLLER
 
@@ -230,6 +231,13 @@ classdef studentControllerInterface < matlab.System
             else
                 V_servo = u_prev;
             end
+
+            j_ball_ref = 0;
+            s_ball_ref = 0;
+        end
+
+        if abs(x_hat(1) - p_ball_ref) > 0.01
+            V_servo = V_servo + 3*sign(x_hat(1) - p_ball_ref);
         end
 
         %% Safety (for both controllers)
