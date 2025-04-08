@@ -7,7 +7,7 @@ dtheta = x(4);
 g = 9.81;
 r_arm = 0.0254;
 L = 0.4255;
-mu = 0.78;
+mu = 0.1;
 
 a = 5 * g * r_arm / (7 * L);
 b = (5 * L / 14) * (r_arm / L)^2;
@@ -19,7 +19,12 @@ dx = zeros(4, 1);
 dx(1) = v_ball;
 a2 = a * sin(theta) - b * dtheta^2 * cos(theta)^2 + c * p_ball * dtheta^2 * cos(theta)^2; % Acceleration with no friction
 af_2 = - sign(v_ball) * mu * a * cos(theta); % Acceleration due to friction
-dx(2) = max(a2 + af_2, 0); % Friction cannot change the direction of acceleration
+if a2 >= 0 % Friction cannot change the direction of acceleration
+    dx(2) = max(a2 + af_2, 0); 
+else
+    dx(2) = min(a2 + af_2, 0); 
+end
+
 dx(3) = dtheta;
 K = 1.5;
 tau = 0.025;
