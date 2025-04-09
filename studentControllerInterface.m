@@ -32,6 +32,7 @@ classdef studentControllerInterface < matlab.System
         theta_d = 0;
         sum_p_err = 0;
         sum_v_err = 0;
+        v_err_prev = 0;
 
         % Safety properties
         lambda_cbf = 10;
@@ -45,7 +46,7 @@ classdef studentControllerInterface < matlab.System
         %    disp("You can use this function for initializaition.");
         % end
 
-        function [V_servo,x_hat] = stepImpl(obj, t, p_ball, theta)
+        function [V_servo,p_est,v_est,th_est,om_est] = stepImpl(obj, t, p_ball, theta)
         % This is the main function called every iteration. You have to implement
         % the controller in this function, bu you are not allowed to
         % change the signature of this function. 
@@ -78,6 +79,7 @@ classdef studentControllerInterface < matlab.System
         s_ref_prev = obj.s_ref_prev;
         sum_p_err = obj.sum_p_err;
         sum_v_err = obj.sum_v_err;
+        v_err_prev = obj.v_err_prev;
         
         %% EKF (For both controllers)
         A = [1, dt, 0, 0;
@@ -94,6 +96,17 @@ classdef studentControllerInterface < matlab.System
         K = P_p*H'/(H*P_p*H' + M*Sigma_ww*M');
         x_hat = x_p + K*([p_ball;theta] - [x_p(1);x_p(3)]);
         P_m = (eye(4) - K*H)*P_p*(eye(4) - K*H)' + K*M*Sigma_ww*M'*K';
+
+        p_est = x_hat(1);
+        v_est = x_hat(2);
+        th_est = x_hat(3);
+        om_est = x_hat(4);
+
+%         if x_hat(1) < -0.10
+%             Sigma_ww = 0.04*eye(2);
+%         else
+%             Sigma_ww = 0.01*eye(2);
+%         end
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
             t_ramp = 0.5;
@@ -162,19 +175,21 @@ classdef studentControllerInterface < matlab.System
             theta_d = 0;
             sum_p_err = 0;
             sum_v_err = 0;
+            v_err_prev = 0;
+            vel_error = 0;
 
         else % PID-LQR CONTROLLER
 
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);  
 
             % --- MATLAB tuning ---
-            k_p_ball = 1.2;
-            k_i_ball = 0.6;
-            k_p_vel = 3.0;
-            k_i_vel = 1.2;
-            k_p_theta = 1.0;
-            Q = diag([1000, 100]);
-            R = 16;
+%             k_p_ball = 1.2;
+%             k_i_ball = 0.6;
+%             k_p_vel = 3.0;
+%             k_i_vel = 1.2;
+%             k_p_theta = 1.0;
+%             Q = diag([1000, 100]);
+%             R = 16;
 
             % --- Simulink tuning ---
             % k_p_ball = 1.2;
@@ -182,6 +197,16 @@ classdef studentControllerInterface < matlab.System
             % k_p_theta = 1.0;
             % Q = diag([1000,100]);
             % R = 1;
+
+            % --- Hardware tuning ---
+            k_p_ball = 0.9;
+            k_i_ball = 0.15;
+            k_d_ball = 0.1;
+            k_p_vel = 3.0;
+            k_i_vel = 1.0;
+            k_p_theta = 1.0;
+            Q = diag([1000, 100]);
+            R = 16;
 
             %% PID
 
@@ -193,7 +218,7 @@ classdef studentControllerInterface < matlab.System
             elseif sum_p_err < -0.01
                 sum_p_err = -0.01;
             end
-            v_des = v_ball_ref - k_p_ball*pos_error - k_i_ball*sum_p_err;
+            v_des = v_ball_ref - k_p_ball*pos_error - k_i_ball*sum_p_err - k_d_ball*v_err_prev;
 
             % Velocity control to get a desired acceleration (angle)
             vel_error = x_hat(2) - v_des;
@@ -310,6 +335,7 @@ classdef studentControllerInterface < matlab.System
             obj.theta_d = theta_d;
             obj.sum_p_err = sum_p_err;
             obj.sum_v_err = sum_v_err;
+            obj.v_err_prev = vel_error;
         end
 
 
