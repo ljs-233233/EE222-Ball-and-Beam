@@ -30,13 +30,15 @@ classdef studentControllerInterface < matlab.System
 
         % PID Properties
         theta_d = 0;
+        sum_p_err = 0;
+        sum_v_err = 0;
 
         % Safety properties
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-        ctr_type = 0; % FEEDBACK LINEARIZATION
-%         ctr_type = 1; % PID-LQR
+        % ctr_type = 0; % FEEDBACK LINEARIZATION
+        ctr_type = 1; % PID-LQR
     end
     methods(Access = protected)
         % function setupImpl(obj)
@@ -74,6 +76,8 @@ classdef studentControllerInterface < matlab.System
         a_ref_prev = obj.a_ref_prev;
         j_ref_prev = obj.j_ref_prev;
         s_ref_prev = obj.s_ref_prev;
+        sum_p_err = obj.sum_p_err;
+        sum_v_err = obj.sum_v_err;
         
         %% EKF (For both controllers)
         A = [1, dt, 0, 0;
@@ -156,6 +160,8 @@ classdef studentControllerInterface < matlab.System
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
             theta_d = 0;
+            sum_p_err = 0;
+            sum_v_err = 0;
 
         else % PID-LQR CONTROLLER
 
@@ -163,7 +169,9 @@ classdef studentControllerInterface < matlab.System
 
             % --- MATLAB tuning ---
             k_p_ball = 1.2;
+            k_i_ball = 0.6;
             k_p_vel = 3.0;
+            k_i_vel = 1.2;
             k_p_theta = 1.0;
             Q = diag([1000, 100]);
             R = 16;
@@ -176,14 +184,26 @@ classdef studentControllerInterface < matlab.System
             % R = 1;
 
             %% PID
-            
+
             % Position control to get a desired velocity
             pos_error = x_hat(1) - p_ball_ref;
-            v_des = v_ball_ref - k_p_ball*pos_error;
+            sum_p_err = sum_p_err + pos_error*dt;
+            if sum_p_err > 0.01
+                sum_p_err = 0.01;
+            elseif sum_p_err < -0.01
+                sum_p_err = -0.01;
+            end
+            v_des = v_ball_ref - k_p_ball*pos_error - k_i_ball*sum_p_err;
 
             % Velocity control to get a desired acceleration (angle)
             vel_error = x_hat(2) - v_des;
-            a_des = a_ball_ref - k_p_vel*vel_error;
+            sum_v_err = sum_v_err + vel_error*dt;
+            if sum_v_err > 0.1
+                sum_v_err = 0.1;
+            elseif sum_v_err < -0.1
+                sum_v_err = -0.1;
+            end
+            a_des = a_ball_ref - k_p_vel*vel_error - k_i_vel*sum_v_err;
 
             % Angle Computation
             a_param = 5 * g * r_g / (7 * len);
@@ -288,6 +308,8 @@ classdef studentControllerInterface < matlab.System
             obj.u_prev = V_servo;
             obj.t_prev = t;
             obj.theta_d = theta_d;
+            obj.sum_p_err = sum_p_err;
+            obj.sum_v_err = sum_v_err;
         end
 
 
