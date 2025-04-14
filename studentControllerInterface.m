@@ -38,8 +38,8 @@ classdef studentControllerInterface < matlab.System
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-        % ctr_type = 0; % FEEDBACK LINEARIZATION
-        ctr_type = 1; % PID-LQR
+        ctr_type = 0; % FEEDBACK LINEARIZATION
+%         ctr_type = 1; % PID-LQR
     end
     methods(Access = protected)
         % function setupImpl(obj)
@@ -102,11 +102,11 @@ classdef studentControllerInterface < matlab.System
         th_est = x_hat(3);
         om_est = x_hat(4);
 
-%         if x_hat(1) < -0.10
-%             Sigma_ww = 0.04*eye(2);
-%         else
-%             Sigma_ww = 0.01*eye(2);
-%         end
+%         Score: 2.93
+%         noise_coef = 0.04/(1 + exp(-30*(p_est-0.1))) + 0.01;
+%         Sigma_ww = noise_coef*eye(2);
+        Sigma_ww = 0.04*eye(2);
+
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
             t_ramp = 0.5;
@@ -156,7 +156,7 @@ classdef studentControllerInterface < matlab.System
             % Calculate reference Lie derivatives
             LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3)));
             % "Worse" approximation
-            Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3)));
+            Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3)) - sign(x_hat(2))*0.5*(5*g*r_g) / (7*len)*cos(x_hat(3)));
             % "Better" approximation
             % xdot2 = (5*g*r_g) / (7*len) * sin(x_hat(3)) - (5*r_g^2) / (7*len^2) * (len/2 - x_hat(1)) * x_hat(4)^2*(cos(x_hat(3))^2);
             % Lf4 = -(5*g*r_g*x_hat(4)*cos(x_hat(3))) / (7*len*tau) - (5*g*r_g*x_hat(4)^2*sin(x_hat(3))) / (7*len^2) + (5*r_g^2*xdot2*x_hat(4)^3*(cos(x_hat(3)))^2) / (7*len^2) ...
@@ -199,8 +199,8 @@ classdef studentControllerInterface < matlab.System
             % R = 1;
 
             % --- Hardware tuning ---
-            k_p_ball = 0.9;
-            k_i_ball = 0.15;
+            k_p_ball = 1.0;
+            k_i_ball = 0.2;
             k_d_ball = 0.1;
             k_p_vel = 3.0;
             k_i_vel = 1.0;
@@ -326,6 +326,7 @@ classdef studentControllerInterface < matlab.System
             obj.j_ref_prev = j_ball_ref;
             obj.s_ref_prev = s_ball_ref;
             obj.theta_d = asin(a_ball_ref/(5 * g * r_g / (7 * len)));
+            obj.Sigma_ww = Sigma_ww;
         else
             obj.t_prev = t;
             obj.x_hat = x_hat;
@@ -336,6 +337,7 @@ classdef studentControllerInterface < matlab.System
             obj.sum_p_err = sum_p_err;
             obj.sum_v_err = sum_v_err;
             obj.v_err_prev = vel_error;
+            obj.Sigma_ww = Sigma_ww;
         end
 
 
