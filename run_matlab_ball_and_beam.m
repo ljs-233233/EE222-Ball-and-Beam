@@ -3,7 +3,7 @@ clear all
 
 %% General Settings.
 % Initial state.
-x0 = [0.00; 0.00; 0; 0];
+x0 = [0.00; 0.00; -55*pi/180; 0];
 t0 = 0;
 % Simulation time.
 T = 90;
@@ -53,7 +53,7 @@ while ~end_simulation
     t_end_t = min(t + dt, t0+T);
     ode_opt = odeset('Events', @event_ball_out_of_range);
     [ts_t, xs_t, t_event] = ode_func( ...
-        @(t, x) ball_and_beam_dynamics(t, x, u), ...
+        @(t, x) ball_and_beam_dynamics_friction(t, x, u), ...
         [t, t_end_t], x, ode_opt);
     end_simulation = abs(ts_t(end) - (t0 + T))<1e-10 || ~isempty(t_event);
     end_with_event = ~isempty(t_event); 

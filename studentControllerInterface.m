@@ -19,7 +19,7 @@ classdef studentControllerInterface < matlab.System
         s_ref_prev = 0;
 
         % EKF Properties
-        x_hat = [-0.19;0;-55*pi/180;0];
+        x_hat = [0.00;0;-55*pi/180;0];
         P_m = 0.1*eye(4);
         L = eye(4);
         H = [1,0,0,0;
@@ -154,9 +154,26 @@ classdef studentControllerInterface < matlab.System
             end
 
             % Calculate reference Lie derivatives
-            LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3)));
             % "Worse" approximation
-            Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3)) - sign(x_hat(2))*0.5*(5*g*r_g) / (7*len)*cos(x_hat(3)));
+
+            % LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3))); % without friction
+
+            % with friction:
+            mu = 0.2;
+            if x_hat(2) > 0
+                LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) + mu*sin(x_hat(3)));
+            else
+                LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) - mu*sin(x_hat(3)));
+            end
+
+            % Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3))); % without friction
+            % with friction
+            if x_hat(2) > 0
+                Lf4 = (5*g*r_g) / (7*len) * (x_hat(4)^2*(mu*cos(x_hat(3)) - sin(x_hat(3))) - x_hat(4)/tau*(cos(x_hat(3)) + mu*sin(x_hat(3))));
+            else
+                Lf4 = (5*g*r_g) / (7*len) * (x_hat(4)^2*(-mu*cos(x_hat(3)) - sin(x_hat(3))) - x_hat(4)/tau*(cos(x_hat(3)) - mu*sin(x_hat(3))));
+            end
+
             % "Better" approximation
             % xdot2 = (5*g*r_g) / (7*len) * sin(x_hat(3)) - (5*r_g^2) / (7*len^2) * (len/2 - x_hat(1)) * x_hat(4)^2*(cos(x_hat(3))^2);
             % Lf4 = -(5*g*r_g*x_hat(4)*cos(x_hat(3))) / (7*len*tau) - (5*g*r_g*x_hat(4)^2*sin(x_hat(3))) / (7*len^2) + (5*r_g^2*xdot2*x_hat(4)^3*(cos(x_hat(3)))^2) / (7*len^2) ...
@@ -164,11 +181,22 @@ classdef studentControllerInterface < matlab.System
             %     - (20*r_g^2*x_hat(4)^2*(cos(x_hat(3)))^2)*(len/2 - x_hat(1)) / (7*tau*len^2) - (10*r_g^2*x_hat(4)^2*sin(2*x_hat(3)))*(len/2 - x_hat(1)) / (7*tau*len^2) - (5*r_g^2*x_hat(2)*x_hat(4)^2*sin(2*x_hat(3))) / (7*len^2) ...
             %     + (10*r_g^2*x_hat(4)^2*(len/2 - x_hat(1))*sin(2*x_hat(3))) / (7*len^2) + (10*r_g^2*x_hat(4)^2*(len/2 - x_hat(1))*cos(2*x_hat(3))) / (7*len^2);
 
-            % Define xi state (output and derivatives)
+            % Define xi state without friction (output and derivatives)
+            % xi1 = x_hat(1);
+            % xi2 = x_hat(2);
+            % xi3 = (5*g*r_g) / (7*len) * sin(x_hat(3));
+            % xi4 = (5*g*r_g) / (7*len) * x_hat(4) * cos(x_hat(3));
+
+            % Define xi state with friction (output and derivatives)
             xi1 = x_hat(1);
             xi2 = x_hat(2);
-            xi3 = (5*g*r_g) / (7*len) * sin(x_hat(3));
-            xi4 = (5*g*r_g) / (7*len) * x_hat(4) * cos(x_hat(3));
+            if x_hat(2) > 0
+                xi3 = (5*g*r_g) / (7*len) * (sin(x_hat(3)) - mu*cos(x_hat(3)));
+                xi4 = (5*g*r_g) / (7*len) * x_hat(4) * (cos(x_hat(3)) + mu*sin(x_hat(3)));
+            else
+                xi3 = (5*g*r_g) / (7*len) * (sin(x_hat(3)) + mu*cos(x_hat(3)));
+                xi4 = (5*g*r_g) / (7*len) * x_hat(4) * (cos(x_hat(3)) - mu*sin(x_hat(3)));
+            end
 
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
