@@ -38,8 +38,8 @@ classdef studentControllerInterface < matlab.System
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-        ctr_type = 0; % FEEDBACK LINEARIZATION
-%         ctr_type = 1; % PID-LQR
+%         ctr_type = 0; % FEEDBACK LINEARIZATION
+        ctr_type = 1; % PID-LQR
     end
     methods(Access = protected)
         % function setupImpl(obj)
@@ -102,10 +102,9 @@ classdef studentControllerInterface < matlab.System
         th_est = x_hat(3);
         om_est = x_hat(4);
 
-%         Score: 2.93
-%         noise_coef = 0.04/(1 + exp(-30*(p_est-0.1))) + 0.01;
-%         Sigma_ww = noise_coef*eye(2);
-        Sigma_ww = 0.04*eye(2);
+        noise_coef = 0.04/(1 + exp(-30*(p_est-0.1))) + 0.01;
+        Sigma_ww = noise_coef*eye(2);
+%         Sigma_ww = 0.04*eye(2);
 
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
@@ -156,19 +155,20 @@ classdef studentControllerInterface < matlab.System
             % Calculate reference Lie derivatives
             % "Worse" approximation
 
-            % LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3))); % without friction
+%             LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3))); % without friction
 
             % with friction:
-            mu = 0.2;
+%             mu = 0.175*exp(-10*x_hat(2)^2) + 0.025;
+            mu = 0.15;
             if x_hat(2) > 0
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) + mu*sin(x_hat(3)));
             else
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) - mu*sin(x_hat(3)));
             end
 
-            % Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3))); % without friction
+%             Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3))); % without friction
             % with friction
-            if x_hat(2) > 0
+            if x_hat(2) > 0 
                 Lf4 = (5*g*r_g) / (7*len) * (x_hat(4)^2*(mu*cos(x_hat(3)) - sin(x_hat(3))) - x_hat(4)/tau*(cos(x_hat(3)) + mu*sin(x_hat(3))));
             else
                 Lf4 = (5*g*r_g) / (7*len) * (x_hat(4)^2*(-mu*cos(x_hat(3)) - sin(x_hat(3))) - x_hat(4)/tau*(cos(x_hat(3)) - mu*sin(x_hat(3))));
@@ -182,10 +182,10 @@ classdef studentControllerInterface < matlab.System
             %     + (10*r_g^2*x_hat(4)^2*(len/2 - x_hat(1))*sin(2*x_hat(3))) / (7*len^2) + (10*r_g^2*x_hat(4)^2*(len/2 - x_hat(1))*cos(2*x_hat(3))) / (7*len^2);
 
             % Define xi state without friction (output and derivatives)
-            % xi1 = x_hat(1);
-            % xi2 = x_hat(2);
-            % xi3 = (5*g*r_g) / (7*len) * sin(x_hat(3));
-            % xi4 = (5*g*r_g) / (7*len) * x_hat(4) * cos(x_hat(3));
+%             xi1 = x_hat(1);
+%             xi2 = x_hat(2);
+%             xi3 = (5*g*r_g) / (7*len) * sin(x_hat(3));
+%             xi4 = (5*g*r_g) / (7*len) * x_hat(4) * cos(x_hat(3));
 
             % Define xi state with friction (output and derivatives)
             xi1 = x_hat(1);
