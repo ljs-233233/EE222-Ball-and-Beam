@@ -38,8 +38,8 @@ classdef studentControllerInterface < matlab.System
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-%         ctr_type = 0; % FEEDBACK LINEARIZATION
-        ctr_type = 1; % PID-LQR
+        ctr_type = 0; % FEEDBACK LINEARIZATION
+        % ctr_type = 1; % PID-LQR
     end
     methods(Access = protected)
         % function setupImpl(obj)
@@ -159,7 +159,16 @@ classdef studentControllerInterface < matlab.System
 
             % with friction:
 %             mu = 0.175*exp(-10*x_hat(2)^2) + 0.025;
-            mu = 0.15;
+            
+            if v_ball_ref == 0
+                mu_amp = 0.6;
+            else
+                mu_amp = 0.3;
+            end
+
+            mu = mu_amp*exp(-x_hat(2)^2 / (0.05)^2);
+
+            % mu = 0.15;
             if x_hat(2) > 0
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) + mu*sin(x_hat(3)));
             else
