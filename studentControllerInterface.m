@@ -39,7 +39,10 @@ classdef studentControllerInterface < matlab.System
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
         ctr_type = 0; % FEEDBACK LINEARIZATION
-        % ctr_type = 1; % PID-LQR
+%         ctr_type = 1; % PID-LQR
+
+        prev_ctr_type = 0;
+        switch_time = 0;
     end
     methods(Access = protected)
         % function setupImpl(obj)
@@ -80,6 +83,8 @@ classdef studentControllerInterface < matlab.System
         sum_p_err = obj.sum_p_err;
         sum_v_err = obj.sum_v_err;
         v_err_prev = obj.v_err_prev;
+        switch_time = obj.switch_time;
+        prev_ctr_type = obj.prev_ctr_type;
         
         %% EKF (For both controllers)
         A = [1, dt, 0, 0;
@@ -102,10 +107,26 @@ classdef studentControllerInterface < matlab.System
         th_est = x_hat(3);
         om_est = x_hat(4);
 
-        noise_coef = 0.04/(1 + exp(-30*(p_est-0.1))) + 0.01;
+        noise_coef = 0.04/(1 + exp(30*(p_est+0.1))) + 0.01;
         Sigma_ww = noise_coef*eye(2);
 %         Sigma_ww = 0.04*eye(2);
 
+        [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
+        if v_ball_ref == 0 && a_ball_ref == 0
+            ctr_type = 1;
+            if prev_ctr_type == 0
+                switch_time = t;
+            else
+                switch_time = switch_time;
+            end
+        else
+            ctr_type = 0;
+            if prev_ctr_type == 1
+                switch_time = t;
+            else
+                switch_time = switch_time;
+            end
+        end
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
             t_ramp = 0.5;
@@ -135,6 +156,12 @@ classdef studentControllerInterface < matlab.System
             % p3 = max(-1.8 - 0*t/t_ramp, -1.8);
             % p4 = max(-40.0 - 0*t/t_ramp, -40.0);
 
+            % Desired pole locations Hardware
+%             p1 = -1.5;
+%             p2 = max(-2.7 - 0*t/t_ramp, -2.7);
+%             p3 = max(-6 - 0*t/t_ramp, -6);
+%             p4 = max(-32.5 - 0*t/t_ramp, -32.5);
+
             % k values (in A_k) based on desired poles
             k1 = p1*p2*p3*p4;
             k2 = -(p2*p3*p4 + p1*p3*p4 + p1*p2*p4 + p1*p2*p3);
@@ -143,7 +170,6 @@ classdef studentControllerInterface < matlab.System
 
 
             % Get or calculate reference trajectory and derivatives
-            [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
             if dt > 0
                 j_ball_ref = (a_ball_ref - a_ref_prev)/dt;
                 s_ball_ref = (j_ball_ref - j_ref_prev)/dt;
@@ -151,6 +177,11 @@ classdef studentControllerInterface < matlab.System
                 j_ball_ref = j_ref_prev;
                 s_ball_ref = s_ref_prev;
             end
+
+%             if v_ball_ref == 0
+%                 rho = 0.5;
+%                 v_ball_ref = rho*v_ball_ref + (1-rho)*(p_ball_ref - x_hat(1));
+%             end
 
             % Calculate reference Lie derivatives
             % "Worse" approximation
@@ -160,15 +191,15 @@ classdef studentControllerInterface < matlab.System
             % with friction:
 %             mu = 0.175*exp(-10*x_hat(2)^2) + 0.025;
             
-            if v_ball_ref == 0
-                mu_amp = 0.6;
+            if v_ball_ref == 0 && a_ball_ref == 0
+                mu = 0.4;
             else
-                mu_amp = 0.3;
+                mu = 0.1;
             end
 
-            mu = mu_amp*exp(-x_hat(2)^2 / (0.05)^2);
+%             mu = mu_amp*exp(-x_hat(2)^2 / (0.05)^2);
 
-            % mu = 0.15;
+%             mu = 0.15;
             if x_hat(2) > 0
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) + mu*sin(x_hat(3)));
             else
@@ -209,11 +240,19 @@ classdef studentControllerInterface < matlab.System
 
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
+            V_sat = min(0.5 + 2.5*(t-switch_time)/1, 3);
+            if V_servo > V_sat
+                V_servo = V_sat;
+            elseif V_servo < -V_sat
+                V_servo = -V_sat;
+            end
+            
             theta_d = 0;
             sum_p_err = 0;
             sum_v_err = 0;
             v_err_prev = 0;
             vel_error = 0;
+            prev_ctr_type = 0;
 
         else % PID-LQR CONTROLLER
 
@@ -312,9 +351,16 @@ classdef studentControllerInterface < matlab.System
             else
                 V_servo = u_prev;
             end
+            V_sat = min(0.5 + 2.5*(t-switch_time)/1, 3);
+            if V_servo > V_sat
+                V_servo = V_sat;
+            elseif V_servo < -V_sat
+                V_servo = -V_sat;
+            end
 
             j_ball_ref = 0;
             s_ball_ref = 0;
+            prev_ctr_type = 1;
         end
 
         %% Friction
@@ -376,6 +422,8 @@ classdef studentControllerInterface < matlab.System
             obj.v_err_prev = vel_error;
             obj.Sigma_ww = Sigma_ww;
         end
+        obj.switch_time = switch_time;
+        obj.prev_ctr_type = prev_ctr_type;
 
 
         end
