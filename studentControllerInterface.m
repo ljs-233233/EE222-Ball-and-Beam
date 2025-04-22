@@ -275,7 +275,7 @@ classdef studentControllerInterface < matlab.System
             % R = 1;
 
             % --- Hardware tuning ---
-            k_p_ball = 1.0;
+            k_p_ball = 0.25;
             k_i_ball = 0.2;
             k_d_ball = 0.1;
             k_p_vel = 3.0;
