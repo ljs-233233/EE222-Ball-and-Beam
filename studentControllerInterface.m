@@ -19,7 +19,7 @@ classdef studentControllerInterface < matlab.System
         s_ref_prev = 0;
 
         % EKF Properties
-        x_hat = [0.00;0;-55*pi/180;0];
+        x_hat = [0.0;0;-55*pi/180;0];
         P_m = 0.1*eye(4);
         L = eye(4);
         H = [1,0,0,0;
@@ -38,8 +38,8 @@ classdef studentControllerInterface < matlab.System
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-        ctr_type = 0; % FEEDBACK LINEARIZATION
-%         ctr_type = 1; % PID-LQR
+%         ctr_type = 0; % FEEDBACK LINEARIZATION
+        ctr_type = 1; % PID-LQR
 
         prev_ctr_type = 0;
         switch_time = 0;
@@ -112,21 +112,21 @@ classdef studentControllerInterface < matlab.System
 %         Sigma_ww = 0.04*eye(2);
 
         [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-        if v_ball_ref == 0 && a_ball_ref == 0
-            ctr_type = 1;
-            if prev_ctr_type == 0
-                switch_time = t;
-            else
-                switch_time = switch_time;
-            end
-        else
-            ctr_type = 0;
-            if prev_ctr_type == 1
-                switch_time = t;
-            else
-                switch_time = switch_time;
-            end
-        end
+%         if v_ball_ref == 0 && a_ball_ref == 0
+%             ctr_type = 1;
+%             if prev_ctr_type == 0
+%                 switch_time = t;
+%             else
+%                 switch_time = switch_time;
+%             end
+%         else
+%             ctr_type = 0;
+%             if prev_ctr_type == 1
+%                 switch_time = t;
+%             else
+%                 switch_time = switch_time;
+%             end
+%         end
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
             t_ramp = 0.5;
@@ -240,7 +240,7 @@ classdef studentControllerInterface < matlab.System
 
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
-            V_sat = min(0.5 + 2.5*(t-switch_time)/1, 3);
+            V_sat = min(0.5 + 1.0*(t-switch_time)/0.5, 1.5);
             if V_servo > V_sat
                 V_servo = V_sat;
             elseif V_servo < -V_sat
@@ -275,14 +275,14 @@ classdef studentControllerInterface < matlab.System
             % R = 1;
 
             % --- Hardware tuning ---
-            k_p_ball = 0.25;
+            k_p_ball = 1.0;
             k_i_ball = 0.2;
             k_d_ball = 0.1;
             k_p_vel = 3.0;
             k_i_vel = 1.0;
             k_p_theta = 1.0;
             Q = diag([1000, 100]);
-            R = 16;
+            R = 81;
 
             %% PID
 
@@ -351,7 +351,7 @@ classdef studentControllerInterface < matlab.System
             else
                 V_servo = u_prev;
             end
-            V_sat = min(0.5 + 2.5*(t-switch_time)/1, 3);
+            V_sat = min(0.5 + 2.5*(t-switch_time)/0.25, 3);
             if V_servo > V_sat
                 V_servo = V_sat;
             elseif V_servo < -V_sat
