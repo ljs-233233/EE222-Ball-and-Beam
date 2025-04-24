@@ -197,7 +197,7 @@ classdef studentControllerInterface < matlab.System
                 mu = 0.1;
             end
 
-%             mu = mu_amp*exp(-x_hat(2)^2 / (0.05)^2);
+            mu = mu*exp(-x_hat(2)^2 / (0.05)^2);
 
 %             mu = 0.15;
             if x_hat(2) > 0
