@@ -199,7 +199,6 @@ classdef studentControllerInterface < matlab.System
 
             mu = mu*exp(-x_hat(2)^2 / (0.05)^2);
 
-%             mu = 0.15;
             if x_hat(2) > 0
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) + mu*sin(x_hat(3)));
             else
