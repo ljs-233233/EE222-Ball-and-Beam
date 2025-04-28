@@ -38,8 +38,8 @@ classdef studentControllerInterface < matlab.System
         lambda_cbf = 10;
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
-%         ctr_type = 0; % FEEDBACK LINEARIZATION
-        ctr_type = 1; % PID-LQR
+        ctr_type = 0; % FEEDBACK LINEARIZATION
+%         ctr_type = 1; % PID-LQR
 
         prev_ctr_type = 0;
         switch_time = 0;
@@ -132,10 +132,10 @@ classdef studentControllerInterface < matlab.System
             t_ramp = 0.5;
 
             % Desired pole locations with "worse" approximation: MATLAB
-            p1 = max(-0.55 - 0.57*t/t_ramp, -1.12);
-            p2 = max(-2.7 - 0*t/t_ramp, -2.7);
-            p3 = max(-6 - 0*t/t_ramp, -6);
-            p4 = max(-32.5 - 0*t/t_ramp, -32.5);
+%             p1 = max(-0.55 - 0.57*t/t_ramp, -1.12);
+%             p2 = max(-2.7 - 0*t/t_ramp, -2.7);
+%             p3 = max(-6 - 0*t/t_ramp, -6);
+%             p4 = max(-32.5 - 0*t/t_ramp, -32.5);
 
             % Desired pole locations with "better" approximation: MATLAB
             % p1 = max(-0.55 - 0.6*t/t_ramp, -1.15);
@@ -157,10 +157,10 @@ classdef studentControllerInterface < matlab.System
             % p4 = max(-40.0 - 0*t/t_ramp, -40.0);
 
             % Desired pole locations Hardware
-%             p1 = -1.5;
-%             p2 = max(-2.7 - 0*t/t_ramp, -2.7);
-%             p3 = max(-6 - 0*t/t_ramp, -6);
-%             p4 = max(-32.5 - 0*t/t_ramp, -32.5);
+            p1 = -1.25;
+            p2 = max(-2.7 - 0*t/t_ramp, -2.7);
+            p3 = max(-6 - 0*t/t_ramp, -6);
+            p4 = max(-32.5 - 0*t/t_ramp, -32.5);
 
             % k values (in A_k) based on desired poles
             k1 = p1*p2*p3*p4;
@@ -192,7 +192,7 @@ classdef studentControllerInterface < matlab.System
 %             mu = 0.175*exp(-10*x_hat(2)^2) + 0.025;
             
             if v_ball_ref == 0 && a_ball_ref == 0
-                mu = 0.4;
+                mu = 0.15;
             else
                 mu = 0.1;
             end
@@ -239,7 +239,7 @@ classdef studentControllerInterface < matlab.System
 
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
-            V_sat = min(0.5 + 1.0*(t-switch_time)/0.5, 1.5);
+            V_sat = min(0.5 + 2.5*(t-switch_time)/1.0, 3);
             if V_servo > V_sat
                 V_servo = V_sat;
             elseif V_servo < -V_sat
