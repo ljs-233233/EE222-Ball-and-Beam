@@ -107,35 +107,35 @@ classdef studentControllerInterface < matlab.System
         th_est = x_hat(3);
         om_est = x_hat(4);
 
-        noise_coef = 0.04/(1 + exp(30*(p_est+0.1))) + 0.01;
-        Sigma_ww = noise_coef*eye(2);
-%         Sigma_ww = 0.04*eye(2);
+%         noise_coef = 0.04/(1 + exp(30*(p_est+0.1))) + 0.01;
+%         Sigma_ww = noise_coef*eye(2);
+        Sigma_ww = 0.05*eye(2);
 
         [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-        if v_ball_ref == 0 && a_ball_ref == 0
-            ctr_type = 1;
-            if prev_ctr_type == 0
-                switch_time = t;
-            else
-                switch_time = switch_time;
-            end
-        else
-            ctr_type = 0;
-            if prev_ctr_type == 1
-                switch_time = t;
-            else
-                switch_time = switch_time;
-            end
-        end
+%         if v_ball_ref == 0 && a_ball_ref == 0
+%             ctr_type = 1;
+%             if prev_ctr_type == 0
+%                 switch_time = t;
+%             else
+%                 switch_time = switch_time;
+%             end
+%         else
+%             ctr_type = 0;
+%             if prev_ctr_type == 1
+%                 switch_time = t;
+%             else
+%                 switch_time = switch_time;
+%             end
+%         end
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
             t_ramp = 0.5;
 
             % Desired pole locations with "worse" approximation: MATLAB
-            p1 = max(-0.55 - 0.57*t/t_ramp, -1.12);
-            p2 = max(-2.7 - 0*t/t_ramp, -2.7);
-            p3 = max(-6 - 0*t/t_ramp, -6);
-            p4 = max(-32.5 - 0*t/t_ramp, -32.5);
+%             p1 = max(-0.55 - 0.57*t/t_ramp, -1.12);
+%             p2 = max(-2.7 - 0*t/t_ramp, -2.7);
+%             p3 = max(-6 - 0*t/t_ramp, -6);
+%             p4 = max(-32.5 - 0*t/t_ramp, -32.5);
 
             % Desired pole locations with "better" approximation: MATLAB
             % p1 = max(-0.55 - 0.6*t/t_ramp, -1.15);
@@ -157,10 +157,10 @@ classdef studentControllerInterface < matlab.System
             % p4 = max(-40.0 - 0*t/t_ramp, -40.0);
 
             % Desired pole locations Hardware
-%             p1 = -1.5;
-%             p2 = max(-2.7 - 0*t/t_ramp, -2.7);
-%             p3 = max(-6 - 0*t/t_ramp, -6);
-%             p4 = max(-32.5 - 0*t/t_ramp, -32.5);
+            p1 = -1.25;
+            p2 = max(-2.7 - 0*t/t_ramp, -2.7);
+            p3 = max(-6 - 0*t/t_ramp, -6);
+            p4 = max(-32.5 - 0*t/t_ramp, -32.5);
 
             % k values (in A_k) based on desired poles
             k1 = p1*p2*p3*p4;
@@ -192,7 +192,7 @@ classdef studentControllerInterface < matlab.System
 %             mu = 0.175*exp(-10*x_hat(2)^2) + 0.025;
             
             if v_ball_ref == 0 && a_ball_ref == 0
-                mu = 0.4;
+                mu = 0.15;
             else
                 mu = 0.1;
             end
