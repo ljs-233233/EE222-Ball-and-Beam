@@ -39,8 +39,10 @@ classdef studentControllerInterface < matlab.System
 
         % ADJUST THIS TO SWITCH BETWEEN CONTROLLERS
         ctr_type = 0; % FEEDBACK LINEARIZATION
-%         ctr_type = 1; % PID-LQR
+        % ctr_type = 1; % PID-LQR
 
+        % Properties used when testing switching between controllers, not
+        % currently used
         prev_ctr_type = 0;
         switch_time = 0;
     end
@@ -109,33 +111,36 @@ classdef studentControllerInterface < matlab.System
 
         noise_coef = 0.04/(1 + exp(30*(p_est+0.1))) + 0.01;
         Sigma_ww = noise_coef*eye(2);
-%         Sigma_ww = 0.04*eye(2);
 
         [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-%         if v_ball_ref == 0 && a_ball_ref == 0
-%             ctr_type = 1;
-%             if prev_ctr_type == 0
-%                 switch_time = t;
-%             else
-%                 switch_time = switch_time;
-%             end
-%         else
-%             ctr_type = 0;
-%             if prev_ctr_type == 1
-%                 switch_time = t;
-%             else
-%                 switch_time = switch_time;
-%             end
-%         end
+
+        % Controller type switching logic, not used in final controller
+        %
+        % if v_ball_ref == 0 && a_ball_ref == 0
+        %     ctr_type = 1;
+        %     if prev_ctr_type == 0
+        %         switch_time = t;
+        %     else
+        %         switch_time = switch_time;
+        %     end
+        % else
+        %     ctr_type = 0;
+        %     if prev_ctr_type == 1
+        %         switch_time = t;
+        %     else
+        %         switch_time = switch_time;
+        %     end
+        % end
+
 
         if ctr_type == 0 % FEEDBACK LINEARIZATION CONTROLLER
             t_ramp = 0.5;
 
             % Desired pole locations with "worse" approximation: MATLAB
-%             p1 = max(-0.55 - 0.57*t/t_ramp, -1.12);
-%             p2 = max(-2.7 - 0*t/t_ramp, -2.7);
-%             p3 = max(-6 - 0*t/t_ramp, -6);
-%             p4 = max(-32.5 - 0*t/t_ramp, -32.5);
+            % p1 = max(-0.55 - 0.57*t/t_ramp, -1.12);
+            % p2 = max(-2.7 - 0*t/t_ramp, -2.7);
+            % p3 = max(-6 - 0*t/t_ramp, -6);
+            % p4 = max(-32.5 - 0*t/t_ramp, -32.5);
 
             % Desired pole locations with "better" approximation: MATLAB
             % p1 = max(-0.55 - 0.6*t/t_ramp, -1.15);
@@ -178,26 +183,19 @@ classdef studentControllerInterface < matlab.System
                 s_ball_ref = s_ref_prev;
             end
 
-%             if v_ball_ref == 0
-%                 rho = 0.5;
-%                 v_ball_ref = rho*v_ball_ref + (1-rho)*(p_ball_ref - x_hat(1));
-%             end
-
             % Calculate reference Lie derivatives
+
             % "Worse" approximation
 
-%             LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3))); % without friction
+            % without friction
+            % LgLf3 = (7*len*tau) / (5*g*r_g*K_motor*cos(x_hat(3))); 
 
             % with friction:
-%             mu = 0.175*exp(-10*x_hat(2)^2) + 0.025;
-            
             if v_ball_ref == 0 && a_ball_ref == 0
                 mu = 0.15;
             else
                 mu = 0.1;
             end
-
-            mu = mu*exp(-x_hat(2)^2 / (0.05)^2);
 
             if x_hat(2) > 0
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) + mu*sin(x_hat(3)));
@@ -205,7 +203,9 @@ classdef studentControllerInterface < matlab.System
                 LgLf3 = (7*len*tau) / (5*g*r_g*K_motor) * 1 / (cos(x_hat(3)) - mu*sin(x_hat(3)));
             end
 
-%             Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3))); % without friction
+            % without friction
+            % Lf4 = -(5*g*r_g) / (7*len) * (x_hat(4)*cos(x_hat(3))/tau + x_hat(4)^2*sin(x_hat(3))); 
+
             % with friction
             if x_hat(2) > 0 
                 Lf4 = (5*g*r_g) / (7*len) * (x_hat(4)^2*(mu*cos(x_hat(3)) - sin(x_hat(3))) - x_hat(4)/tau*(cos(x_hat(3)) + mu*sin(x_hat(3))));
@@ -221,10 +221,10 @@ classdef studentControllerInterface < matlab.System
             %     + (10*r_g^2*x_hat(4)^2*(len/2 - x_hat(1))*sin(2*x_hat(3))) / (7*len^2) + (10*r_g^2*x_hat(4)^2*(len/2 - x_hat(1))*cos(2*x_hat(3))) / (7*len^2);
 
             % Define xi state without friction (output and derivatives)
-%             xi1 = x_hat(1);
-%             xi2 = x_hat(2);
-%             xi3 = (5*g*r_g) / (7*len) * sin(x_hat(3));
-%             xi4 = (5*g*r_g) / (7*len) * x_hat(4) * cos(x_hat(3));
+            % xi1 = x_hat(1);
+            % xi2 = x_hat(2);
+            % xi3 = (5*g*r_g) / (7*len) * sin(x_hat(3));
+            % xi4 = (5*g*r_g) / (7*len) * x_hat(4) * cos(x_hat(3));
 
             % Define xi state with friction (output and derivatives)
             xi1 = x_hat(1);
@@ -239,6 +239,8 @@ classdef studentControllerInterface < matlab.System
 
             % Apply I/O Linerazation
             V_servo = LgLf3*(-Lf4 - k1*(xi1 - p_ball_ref) - k2*(xi2 - v_ball_ref) - k3*(xi3 - a_ball_ref) - k4*(xi4 - j_ball_ref) + s_ball_ref);
+
+            % Saturate output to help with energy cost
             V_sat = min(0.5 + 2.5*(t-switch_time)/1.0, 3);
             if V_servo > V_sat
                 V_servo = V_sat;
@@ -258,13 +260,13 @@ classdef studentControllerInterface < matlab.System
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);  
 
             % --- MATLAB tuning ---
-%             k_p_ball = 1.2;
-%             k_i_ball = 0.6;
-%             k_p_vel = 3.0;
-%             k_i_vel = 1.2;
-%             k_p_theta = 1.0;
-%             Q = diag([1000, 100]);
-%             R = 16;
+            % k_p_ball = 1.2;
+            % k_i_ball = 0.6;
+            % k_p_vel = 3.0;
+            % k_i_vel = 1.2;
+            % k_p_theta = 1.0;
+            % Q = diag([1000, 100]);
+            % R = 16;
 
             % --- Simulink tuning ---
             % k_p_ball = 1.2;
@@ -350,6 +352,8 @@ classdef studentControllerInterface < matlab.System
             else
                 V_servo = u_prev;
             end
+
+            % Saturate output to help with energy cost
             V_sat = min(0.5 + 2.5*(t-switch_time)/0.25, 3);
             if V_servo > V_sat
                 V_servo = V_sat;
@@ -362,13 +366,7 @@ classdef studentControllerInterface < matlab.System
             prev_ctr_type = 1;
         end
 
-        %% Friction
-        % if abs(x_hat(1) - p_ball_ref) > 0.1 && abs(x_hat(2)) < 1 && t > 1.5
-        %     V_servo = V_servo - 3*sign(x_hat(1) - p_ball_ref);
-        % end
-
         %% Safety (for both controllers)
-        % Safety
         h = (len/2 - 0.025)^2 - p_ball^2;
 
         p_dot_est = x_hat(2);
@@ -381,6 +379,7 @@ classdef studentControllerInterface < matlab.System
         Lg2_h = -2 * x_hat(1) * g_ball;
 
         lambda_val = obj.lambda_cbf;
+        
         % CBF condition: Lf2_h + Lg2_h*u + 2*lambda*h_dot + lambda^2*h >= 0
         A_cbf = Lg2_h;
         b_cbf = Lf2_h + 2*lambda_val * h_dot + lambda_val^2 * h;
