@@ -54,6 +54,6 @@ Qualitatively, the results a similar to the simulation, with the PID-LQR control
 
 Below is a video of our PID-LQR controller running the evaluation trajectory.
 
-![](hardware_media/eval_video.mov)
+https://github.com/user-attachments/assets/c7ad362c-3898-4642-ad77-d17687e36908
 
-More detailed media can be found in the ['/hardware_media'](/hardware_media) folder.
+More detailed media can be found in the ['/sim_media'](/sim_media) and ['/hardware_media'](/hardware_media) folders.
